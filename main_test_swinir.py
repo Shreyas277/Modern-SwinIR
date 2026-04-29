@@ -20,9 +20,18 @@ def main():
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
     # 1. Load Model (Classical SR with patch size 64)
+    #model = net(upscale=args.scale, in_chans=3, img_size=64, window_size=8,
+               # img_range=1., depths=[6, 6, 6, 6, 6, 6], embed_dim=180, num_heads=[6, 6, 6, 6, 6, 6],
+               # mlp_ratio=2, upsampler='pixelshuffle', resi_connection='1conv')
+    # 1. Load Model (Real-World GAN SR - SwinIR Large)
     model = net(upscale=args.scale, in_chans=3, img_size=64, window_size=8,
-                img_range=1., depths=[6, 6, 6, 6, 6, 6], embed_dim=180, num_heads=[6, 6, 6, 6, 6, 6],
-                mlp_ratio=2, upsampler='pixelshuffle', resi_connection='1conv')
+                img_range=1., 
+                depths=[6, 6, 6, 6, 6, 6, 6, 6, 6], # Increased to 9 blocks
+                embed_dim=240,                      # Increased from 180 to 240
+                num_heads=[8, 8, 8, 8, 8, 8, 8, 8, 8], # Increased to 8 heads
+                mlp_ratio=2, 
+                upsampler='nearest+conv',           # GAN uses nearest+conv
+                resi_connection='3conv')            # GAN uses 3conv
     
     pretrained_model = torch.load(args.model_path)
     param_key = 'params'
