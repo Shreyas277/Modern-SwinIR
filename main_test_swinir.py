@@ -34,9 +34,21 @@ def main():
                 resi_connection='3conv')            # GAN uses 3conv
     
     pretrained_model = torch.load(args.model_path)
-    param_key = 'params'
-    model.load_state_dict(pretrained_model[param_key] if param_key in pretrained_model.keys() else pretrained_model, strict=True)
+    #param_key = 'params'
+    #model.load_state_dict(pretrained_model[param_key] if param_key in pretrained_model.keys() else pretrained_model, strict=True)
+    #model.eval().to(device)
+
+    # Smarter loading: Check for GAN weights first, then classical weights
+    if isinstance(pretrained_model, dict) and 'params_ema' in pretrained_model:
+        weights = pretrained_model['params_ema']
+    elif isinstance(pretrained_model, dict) and 'params' in pretrained_model:
+        weights = pretrained_model['params']
+    else:
+        weights = pretrained_model
+        
+    model.load_state_dict(weights, strict=True)
     model.eval().to(device)
+
     
     # 2. Find all images recursively in dataset_dir
     valid_extensions = ('.png', '.jpg', '.jpeg', '.bmp', '.tif', '.tiff')
